@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raadsel en Wachtwoord</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            overflow: hidden;
+            background-color: black;
+            transition: background-color 1s ease;
+        }
+
+        #password-section, #login-section, #second-riddle-section, #third-riddle-section {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1;
+            transition: all 0.5s ease;
+            width: 80%;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        #password-section.error, #login-section.error, #second-riddle-section.error, #third-riddle-section.error {
+            animation: shake 0.5s;
+            border: 2px solid #f44336;
+            background-color: rgba(255, 0, 0, 0.8);
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 300px;
+            font-size: 16px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.5s ease;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .error-message {
+            color: #f44336;
+            display: none;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .background span {
+            position: absolute;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            opacity: 0.08;
+            animation: fadeInOut 5s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.08; }
+            50% { opacity: 0.4; }
+        }
+
+        #hidden-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: none;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        #quote-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #2196F3;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            text-align: center;
+            display: none;
+            z-index: 3;
+        }
+
+        #quote-popup h2 { margin: 0; }
+
+        #quote-popup button { background-color: #f44336; }
+
+        #my-answer { display: none; margin-top: 20px; }
+
+        #hint-popup {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2196F3;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            text-align: center;
+            display: none;
+            z-index: 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="background" id="matrix-background">
+        <!-- Random 010101 en "Ik hou van je" subtieler gegenereerd -->
+        <script>
+            const body = document.querySelector('.background');
+            const phrases = [
+                "0101010101010101", "1010101010101010", "1110001010101010", 
+                "1101010101010111", "0101010111101010", "Ik hou van je"
+            ];
+            for (let i = 0; i < 800; i++) {
+                const span = document.createElement('span');
+                span.style.left = `${Math.random() * 100}vw`;
+                span.style.top = `${Math.random() * 100}vh`;
+                span.textContent = phrases[Math.random() < 0.02 ? 5 : Math.floor(Math.random() * 5)];
+                span.style.animationDelay = `${Math.random() * 5}s`;
+                span.style.fontSize = `${Math.random() * 5 + 12}px`;
+                body.appendChild(span);
+            }
+        </script>
+    </div>
+
+    <div id="password-section">
+        <h2>Wie is mijn favoriete rapper?</h2>
+        <input type="password" id="password-input" placeholder="Vul het wachtwoord in">
+        <p class="error-message" id="password-error">Onjuist wachtwoord, probeer opnieuw.</p>
+        <button onclick="checkPassword()">Toegang</button>
+    </div>
+
+    <div id="login-section">
+        <h2>Raad het wachtwoord</h2>
+        <p><strong>Raadsel 1:</strong> Wat was de naam van jouw kat?</p>
+        <input type="text" id="riddle-answer1" placeholder="Vul je antwoord in">
+        <p class="error-message" id="error-message1">Onjuist antwoord, probeer opnieuw.</p>
+        <button onclick="checkRiddle1()">Verzenden</button>
+    </div>
+
+    <div id="second-riddle-section">
+        <h2>Dacht je echt dat het zo makkelijk was?</h2>
+        <p><strong>Raadsel 2:</strong> Hoe noem je mij, door iets wat mijn kleine broertje altijd zegt?</p>
+        <input type="text" id="riddle-answer2" placeholder="Vul je antwoord in">
+        <p class="error-message" id="error-message2">Onjuist antwoord, probeer opnieuw.</p>
+        <button onclick="checkRiddle2()">Verzenden</button>
+    </div>
+
+    <div id="third-riddle-section">
+        <h2>Wow, laat ik het nog lastiger maken met dit laatste raadsel!</h2>
+        <p><strong>Raadsel 3:</strong> Wat was de naam van de winkel waar we voor mij een broek hadden gekocht, toen we voor de eerste keer naar de stad gingen?</p>
+        <input type="text" id="riddle-answer3" placeholder="Vul je antwoord in">
+        <p class="error-message" id="error-message3">Onjuist antwoord, probeer opnieuw.</p>
+        <button onclick="checkRiddle3()">Verzenden</button>
+    </div>
+
+    <div id="hint-popup">
+        <p>Zara serieusss??? Hoe weet je het antwoord niet. Denk goed na.</p>
+    </div>
+
+    <button id="hidden-button" onclick="showQuote()">Bekijk het antwoord</button>
+
+    <div id="quote-popup">
+        <h2>We only accept the love we think we deserve.</h2>
+        <button onclick="showAnswer()">Bekijk mijn antwoord</button>
+        <div id="my-answer">
+            <p>My answer: True love isn’t about deserving; it’s about accepting and embracing what’s real and how much we are willing to give.</p>
+        </div>
+    </div>
+
+    <!-- Geluidseffecten -->
+    <audio id="correct-sound" src="sounds/Correct Answer sound effect.mp3" preload="auto"></audio>
+    <audio id="error-sound" src="sounds/Wrong Sound Effect.mp3" preload="auto"></audio>
+    <audio id="button-sound" src="sounds/Select Button Sound Effect.mp3" preload="auto"></audio>
+    <audio id="button-click-sound" src="sounds/Select Button Sound Effect.mp3" preload="auto"></audio>
+
+    <script>
+        document.getElementById("password-section").style.display = "block";
+
+        function checkPassword() {
+            const password = document.getElementById("password-input").value.toLowerCase();
+            if (password === "beny jr" || password === "morad") {
+                document.getElementById("password-section").style.display = "none";
+                document.getElementById("login-section").style.display = "block";
+            } else {
+                const errorMsg = document.getElementById("password-error");
+                errorMsg.style.display = "block";
+                setTimeout(() => { errorMsg.style.display = "none"; }, 2000);
+            }
+        }
+
+        function playSound(id) {
+            const sound = document.getElementById(id);
+            sound.play();
+        }
+
+        function animateInput(input) {
+            input.style.transition = 'transform 0.5s ease';
+            input.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                input.style.transform = 'scale(1)';
+            }, 500);
+        }
+
+        function checkRiddle1() {
+            const answer1 = document.getElementById("riddle-answer1").value.toLowerCase();
+            if (answer1 === "simba") {
+                handleCorrect('riddle-answer1', 'second-riddle-section');
+            } else {
+                handleIncorrect('riddle-answer1');
+            }
+        }
+
+        function checkRiddle2() {
+            const answer2 = document.getElementById("riddle-answer2").value.toLowerCase();
+            if (answer2 === "homar") {
+                handleCorrect('riddle-answer2', 'third-riddle-section');
+            } else {
+                handleIncorrect('riddle-answer2');
+            }
+        }
+
+        function checkRiddle3() {
+            const answer3 = document.getElementById("riddle-answer3").value.toLowerCase();
+            if (answer3 === "pull en bear" || answer3 === "pull & bear") {
+                handleCorrect('riddle-answer3', null);
+            } else if (answer3.toLowerCase() === "zara") {
+                displayHint();
+            } else {
+                handleIncorrect('riddle-answer3');
+            }
+        }
+
+        function handleCorrect(inputId, nextSectionId) {
+            playSound('correct-sound');
+            animateInput(document.getElementById(inputId));
+            if (nextSectionId) {
+                setTimeout(() => {
+                    document.getElementById(inputId).parentNode.style.display = 'none';
+                    document.getElementById(nextSectionId).style.display = 'block';
+                }, 1000); // Vertraag de overgang naar het volgende raadsel
+            } else {
+                document.getElementById('hidden-button').style.display = 'block'; // Laat de verborgen knop zien als het laatste raadsel correct is
+            }
+        }
+
+        function handleIncorrect(inputId) {
+            playSound('error-sound');
+            animateInput(document.getElementById(inputId));
+            document.getElementById(inputId).parentNode.classList.add('error');
+            setTimeout(() => {
+                document.getElementById(inputId).parentNode.classList.remove('error');
+            }, 500);
+        }
+
+        function displayHint() {
+            const hintPopup = document.getElementById('hint-popup');
+            hintPopup.style.display = 'block';
+            setTimeout(() => {
+                hintPopup.style.display = 'none';
+            }, 3000); // Verberg de hint na 3 seconden
+        }
+
+        function showQuote() {
+            playSound('button-sound');
+            document.getElementById('quote-popup').style.display = 'block';
+        }
+
+        function showAnswer() {
+            playSound('button-click-sound');
+            document.getElementById('my-answer').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
